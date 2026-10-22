@@ -1,6 +1,8 @@
 package com.yaryadom.feature.auth
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +16,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -40,76 +43,102 @@ fun AuthScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 32.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Я рядом",
-            style = MaterialTheme.typography.headlineLarge.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 36.sp
-            ),
-            color = MaterialTheme.colorScheme.primary
-        )
+    // Обработка кнопки «Назад» при открытом WebView
+    BackHandler(enabled = uiState.showTelegramWebView) {
+        viewModel.hideTelegramWebView()
+    }
 
-        Spacer(modifier = Modifier.height(12.dp))
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (uiState.showTelegramWebView) {
+            // Режим реального входа через Telegram Login Widget
+            Column(modifier = Modifier.fillMaxSize()) {
+                TextButton(
+                    onClick = { viewModel.hideTelegramWebView() },
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Text("← Назад")
+                }
 
-        Text(
-            text = "Сервис аренды жилья\nс интеграцией Telegram",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(48.dp))
-
-        Button(
-            onClick = { viewModel.loginWithTelegram() },
-            enabled = !uiState.isLoading,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF0088CC) // фирменный цвет Telegram
-            )
-        ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = Color.White,
-                    strokeWidth = 2.dp
+                TelegramLoginWebView(
+                    onAuthSuccess = { data -> viewModel.onTelegramAuthSuccess(data) },
+                    onError = { message -> viewModel.onTelegramAuthError(message) },
+                    modifier = Modifier.weight(1f)
                 )
-            } else {
+            }
+        } else {
+            // Обычный экран с кнопкой
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 32.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(
-                    text = "Войти через Telegram",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
+                    text = "Я рядом",
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 36.sp
+                    ),
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Сервис аренды жилья\nс интеграцией Telegram",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(48.dp))
+
+                Button(
+                    onClick = { viewModel.startTelegramLogin() },
+                    enabled = !uiState.isLoading,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF0088CC)
+                    )
+                ) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = "Войти через Telegram",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
+                uiState.errorMessage?.let { error ->
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = error,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = "Нажимая кнопку, вы соглашаетесь\nс условиями использования сервиса",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                    textAlign = TextAlign.Center
                 )
             }
         }
-
-        uiState.errorMessage?.let { error ->
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = error,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "Нажимая кнопку, вы соглашаетесь\nс условиями использования сервиса",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-            textAlign = TextAlign.Center
-        )
     }
 }
