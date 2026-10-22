@@ -33,9 +33,13 @@ fun YaRyadomNavHost() {
     ) {
         composable(Routes.SPLASH) {
             SplashScreen(
-                onFinished = {
-                    // TODO: в будущем проверять наличие сохранённого токена
+                onNavigateToAuth = {
                     navController.navigate(Routes.AUTH) {
+                        popUpTo(Routes.SPLASH) { inclusive = true }
+                    }
+                },
+                onNavigateToHome = {
+                    navController.navigate(Routes.HOME) {
                         popUpTo(Routes.SPLASH) { inclusive = true }
                     }
                 }
@@ -67,7 +71,5 @@ fun YaRyadomNavHost() {
                 )
             }
         }
-
-        // Остальные маршруты будут добавлены по мере реализации feature-модулей
     }
 }
