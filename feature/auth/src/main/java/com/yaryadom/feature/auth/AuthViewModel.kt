@@ -3,7 +3,6 @@ package com.yaryadom.feature.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,38 +17,69 @@ class AuthViewModel @Inject constructor() : ViewModel() {
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
     /**
-     * Запуск процесса входа через Telegram.
-     * На данном этапе реализована заглушка.
-     * В будущем здесь будет:
-     * 1. Открытие deep-link / WebView с Telegram Login Widget
-     * 2. Получение auth-данных (id, first_name, username, hash)
-     * 3. Отправка на backend для проверки подписи
-     * 4. Сохранение JWT-токена
+     * Показать WebView с официальным Telegram Login Widget.
      */
-    fun loginWithTelegram() {
+    fun startTelegramLogin() {
+        _uiState.update {
+            it.copy(
+                showTelegramWebView = true,
+                errorMessage = null,
+                isLoading = false
+            )
+        }
+    }
+
+    fun hideTelegramWebView() {
+        _uiState.update { it.copy(showTelegramWebView = false) }
+    }
+
+    /**
+     * Вызывается после успешного получения данных от Telegram Login Widget.
+     *
+     * ВАЖНО ПО БЕЗОПАСНОСТИ:
+     * Полученные данные (особенно hash) обязательно нужно отправить на backend
+     * и проверить подпись с использованием bot_token.
+     * Никогда не доверяйте данным только на клиенте.
+     *
+     * Алгоритм проверки на сервере описан здесь:
+     * https://core.telegram.org/widgets/login#checking-authorization
+     */
+    fun onTelegramAuthSuccess(data: TelegramAuthData) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, showTelegramWebView = false) }
 
             try {
-                // TODO: заменить на реальную интеграцию с Telegram
-                delay(1200) // имитация сетевого запроса
+                // TODO: Отправить data на backend для проверки hash и получения JWT
+                // val token = authRepository.verifyTelegramAuth(data)
 
-                // Успешный вход (заглушка)
+                // Временное решение — считаем авторизацию успешной локально
+                // (только для разработки, пока нет backend)
                 _uiState.update {
                     it.copy(
                         isLoading = false,
                         isAuthenticated = true,
-                        userName = "Пользователь"
+                        userName = data.firstName + (data.lastName?.let { " $it" } ?: ""),
+                        telegramAuthData = data
                     )
                 }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = e.message ?: "Ошибка авторизации"
+                        errorMessage = e.message ?: "Ошибка авторизации через Telegram"
                     )
                 }
             }
+        }
+    }
+
+    fun onTelegramAuthError(message: String) {
+        _uiState.update {
+            it.copy(
+                showTelegramWebView = false,
+                isLoading = false,
+                errorMessage = message
+            )
         }
     }
 
