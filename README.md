@@ -49,20 +49,19 @@ ya-ryadom-android/
 │   │   └── res/
 │   └── build.gradle.kts
 ├── core/
-│   ├── common/                   # Общие утилиты
-│   ├── network/                  # Retrofit, API-клиенты
-│   ├── database/                 # Room
-│   └── ui/                       # Общие Compose-компоненты
+│   ├── common/
+│   ├── network/
+│   ├── database/
+│   └── ui/
 ├── feature/
-│   ├── auth/                     # Авторизация через Telegram
-│   ├── search/                   # Поиск объявлений
-│   ├── listings/                 # Создание и управление объявлениями
-│   └── profile/                  # Профиль пользователя
+│   ├── auth/                     # Авторизация (реализован UI + ViewModel)
+│   ├── search/
+│   ├── listings/
+│   └── profile/
 ├── gradle/
-│   └── libs.versions.toml        # Version Catalog
+│   └── libs.versions.toml
 ├── build.gradle.kts
 ├── settings.gradle.kts
-├── gradle.properties
 └── README.md
 ```
 
@@ -74,15 +73,16 @@ ya-ryadom-android/
 - [x] Создание репозитория
 - [x] Выбор технологического стека
 - [x] Формирование дорожной карты
-- [x] Базовая структура Android-проекта (Gradle, модули)
-- [ ] Настройка Backend-скелета
+- [x] Базовая структура Android-проекта
 
-### Этап 1. Фундамент (следующий)
-- [ ] Авторизация через Telegram
+### Этап 1. Фундамент
+- [x] Экран авторизации (UI)
+- [x] AuthViewModel + состояние
+- [x] Навигация Splash → Auth → Home
+- [ ] Реальная интеграция Telegram Login (deep-link / WebView + проверка hash)
+- [ ] Сохранение токена (DataStore)
 - [ ] Базовый профиль пользователя
-- [ ] Полноценная навигация
 - [ ] Подключение к Backend API
-- [ ] Локальное хранение токена
 
 ### Этап 2. Функции арендатора
 - [ ] Поиск объявлений с фильтрами
@@ -109,11 +109,14 @@ ya-ryadom-android/
    ```bash
    git clone https://github.com/stephanvoznyak-dot/ya-ryadom-android.git
    ```
-2. Открыть в Android Studio (Hedgehog или новее).
+2. Открыть в Android Studio (Ladybug / Hedgehog или новее).
 3. Дождаться синхронизации Gradle.
 4. Запустить на эмуляторе или устройстве.
 
-> Примечание: иконки и некоторые ресурсы пока отсутствуют — будут добавлены на следующих шагах.
+При запуске:
+- Показывается Splash-экран «Я рядом»
+- Затем экран входа с кнопкой «Войти через Telegram»
+- После нажатия (пока заглушка) — переход на главный экран
 
 ---
 
